@@ -99,6 +99,7 @@
 #endif
 
 #ifdef _WIN32
+#if 0 /* MinGW has gettimeofday so we don't need this */
 static void gettimeofday (struct timeval *tv, void *dummy)
 {
 	FILETIME	ftime;
@@ -115,6 +116,7 @@ static void gettimeofday (struct timeval *tv, void *dummy)
 	tv->tv_sec = n / 1000000;
 	tv->tv_usec = n % 1000000;
 }
+#endif
 
 static int getuid (void)
 {
@@ -217,10 +219,11 @@ static unsigned short ul_jrand_seed[3];
 
 static int random_get_fd(void)
 {
-    int i, fd;
+    int i, fd = -1;
     struct timeval  tv;
 
     gettimeofday(&tv, 0);
+#ifndef _WIN32
     fd = open("/dev/urandom", O_RDONLY);
     if (fd == -1)
 	fd = open("/dev/random", O_RDONLY | O_NONBLOCK);
@@ -229,6 +232,7 @@ static int random_get_fd(void)
 	if (i >= 0)
 	    fcntl(fd, F_SETFD, i | FD_CLOEXEC);
     }
+#endif
     srand((getpid() << 16) ^ getuid() ^ tv.tv_sec ^ tv.tv_usec);
 
 #ifdef DO_JRAND_MIX
@@ -294,6 +298,26 @@ static void random_get_bytes(void *buf, size_t nbytes)
     return;
 }
 
+#ifdef _WIN32 /* compatibility layer */
+#define LOCK_EX 1
+#define LOCK_UN 2
+static int flock(int fd, int op)
+{
+    HANDLE h = (HANDLE) _get_osfhandle(fd);
+    OVERLAPPED offset;
+    if (h < 0)
+	return -1;
+    memset(&offset, 0, sizeof(offset));
+    switch (op) {
+    case LOCK_EX:
+	return (LockFileEx(h, LOCKFILE_EXCLUSIVE_LOCK, 0, 1, 0, &offset)) ? 0 : -1;
+    case LOCK_UN:
+	UnlockFileEx(h, 0, 1, 0, &offset);
+	return 0;
+    }
+    return -1;
+}
+#endif
 
 /* Assume that the gettimeofday() has microsecond granularity */
 #define MAX_ADJUSTMENT 10
