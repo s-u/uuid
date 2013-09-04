@@ -1,0 +1,11 @@
+ NEWS for uuid
+---------------
+
+0.1-2	(under development)
+    o	update License entry to BSD_3_clause
+
+0.1-1	2013-09-03
+    o	initial CRAN release
+
+0.1-0	2013-02-24
+    o	initial version based on libuuid
