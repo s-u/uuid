@@ -12,8 +12,8 @@ UUIDgenerate(use.time = NA)
 }
 \arguments{
   \item{use.time}{logical, if \code{TRUE} then time-based UUID is
-    generated, if \code{FALSE} then a radom UUID is generated, if
-    \code{NA} then random one is generated is asufficiently reliable
+    generated, if \code{FALSE} then a random UUID is generated, if
+    \code{NA} then random one is generated if a sufficiently reliable
     source of random numbers can be found, otehrwise a time-based UUID
     is generated.}
 }

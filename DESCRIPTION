@@ -4,6 +4,6 @@ Title: Tools for generating and handling of UUIDs
 Author: Simon Urbanek <Simon.Urbanek@r-project.org> (R package), Theodore Ts'o <tytso@thunk.org> (libuuid)
 Maintainer: Simon Urbanek <Simon.Urbanek@r-project.org>
 Depends: R (>= 2.9.0)
-Description: Tools for generating and handling of UUIDs
+Description: Tools for generating and handling of UUIDs (Universally Unique Identifiers)
 License: BSD_3_clause
 URL: http://www.rforge.net/uuid
