@@ -4,6 +4,9 @@
 0.1-2	(under development)
     o	update License entry to BSD_3_clause
 
+    o	don't break on systems without flock()
+	(thanks to Brian Ripley)
+
 0.1-1	2013-09-03
     o	initial CRAN release
 

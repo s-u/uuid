@@ -32,6 +32,11 @@ AC_CHECK_HEADERS([net/if.h net/if_dl.h], [], [],
 ])
 
 AC_CHECK_FUNCS([jrand48])
+AC_CHECK_FUNCS([flock],
+[#if HAVE_SYS_FILE_H
+#include <sys/file.h>
+#endif
+])
 AC_CHECK_MEMBER(struct sockaddr.sa_len,
                 AC_DEFINE_UNQUOTED(HAVE_SA_LEN,1,[Define if struct sockaddr contains sa_len]),,
         [#include <sys/types.h>
