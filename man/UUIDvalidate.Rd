@@ -15,7 +15,8 @@ UUIDvalidate(uuid)
 }
 \details{
   Rather than using regular expressions, this function uses \code{libuuid}'s
-  \code{uuid_parse} function for efficiency.
+  \code{uuid_parse} function for efficiency (and provides a ~5X speed
+  boost vs \code{grepl}).
 
   NA strings in `uuid` lead to NAs in the output vector.
 }
@@ -34,5 +35,9 @@ uuids <- sapply(1:10, UUIDgenerate)
 uuids[3] <- NA
 uuids[6] <- "foo"
 UUIDvalidate(uuids)
-UUIDvalidate(character(0))
+UUIDvalidate(toupper(uuids)) ## works with upper-case, too.
+
+uuids <- sapply(1:1e5, UUIDgenerate) ## generate 100,000 UUIDs for speed test
+system.time(UUIDvalidate(uuids)) ## ~0.047s on a test laptop
+system.time(grepl("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", uuids)) ## ~0.27s on same test laptop
 }
