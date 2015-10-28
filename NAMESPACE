@@ -1,2 +1,4 @@
 useDynLib(uuid, UUID_gen)
+useDynLib(uuid, UUID_validate)
 export(UUIDgenerate)
+export(UUIDvalidate)
