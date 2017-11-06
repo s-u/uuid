@@ -13,7 +13,7 @@ RBIN="${R_HOME}/bin/R"
 CC=`"${RBIN}" CMD config CC`;
 CPP=`"${RBIN}" CMD config CPP`;
 CFLAGS=`"${RBIN}" CMD config CFLAGS`
-CPPFLAGS=`"${RBIN}" CMD config`
+CPPFLAGS=`"${RBIN}" CMD config CPPFLAGS`
 CPPFLAGS="${CPPFLAGS} -I../inst/include"
 if test -n "${PKG_CPPFLAGS}"; then
    CPPFLAGS="${CPPFLAGS} ${PKG_CPPFLAGS}"
