@@ -16,3 +16,12 @@ SEXP UUID_gen(SEXP sTime) {
     return mkString(c);
 }
 
+static const R_CallMethodDef uuid_entries[] = {
+  {"UUID_gen", (DL_FUNC) &UUID_gen, 1},
+  {NULL, NULL, 0}
+};
+
+void R_init_uuid(DllInfo *dll) {
+  R_registerRoutines(dll, NULL, uuid_entries, NULL, NULL);
+  R_useDynamicSymbols(dll, FALSE);
+}
