@@ -43,6 +43,9 @@ AC_CHECK_MEMBER(struct sockaddr.sa_len,
         [#include <sys/types.h>
          #include <sys/socket.h>])
 
+AC_CHECK_HEADERS([dlfcn.h])
+AC_SEARCH_LIBS(dlsym, dl, [AC_DEFINE(HAS_DLSYM, 1, [defined if the system supports dlsym])])
+
 ## NOTE: the current util-linux which has taken over libuuid also uses
 ## check for HAVE_TLS (thread local storage).
 ## However, the AX_CHECK_TLS test in util-linux/m4/tls.m4 is taken from

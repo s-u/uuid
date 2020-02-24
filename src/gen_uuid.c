@@ -99,6 +99,9 @@
 #define THREAD_LOCAL static
 #endif
 
+extern int uuid_rand(void);
+extern void uuid_srand(unsigned seed);
+
 #ifdef _WIN32
 #if 0 /* MinGW has gettimeofday so we don't need this */
 static void gettimeofday (struct timeval *tv, void *dummy)
@@ -234,7 +237,7 @@ static int random_get_fd(void)
 	    fcntl(fd, F_SETFD, i | FD_CLOEXEC);
     }
 #endif
-    srand((getpid() << 16) ^ getuid() ^ tv.tv_sec ^ tv.tv_usec);
+    uuid_srand((getpid() << 16) ^ getuid() ^ tv.tv_sec ^ tv.tv_usec);
 
 #ifdef DO_JRAND_MIX
     ul_jrand_seed[0] = getpid() ^ (tv.tv_sec & 0xFFFF);
@@ -244,7 +247,7 @@ static int random_get_fd(void)
     /* Crank the random number generator a few times */
     gettimeofday(&tv, 0);
     for (i = (tv.tv_sec ^ tv.tv_usec) & 0x1F; i > 0; i--)
-	rand();
+	uuid_rand();
     return fd;
 }
 
@@ -281,7 +284,7 @@ static void random_get_bytes(void *buf, size_t nbytes)
      * randomness if /dev/random/urandom is out to lunch.
      */
     for (cp = buf, i = 0; i < nbytes; i++)
-	*cp++ ^= (rand() >> 7) & 0xFF;
+	*cp++ ^= (uuid_rand() >> 7) & 0xFF;
 
 #ifdef DO_JRAND_MIX
     {
