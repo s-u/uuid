@@ -11,7 +11,8 @@ if test -z "${R_HOME}"; then
 fi
 RBIN="${R_HOME}/bin/R"
 CC=`"${RBIN}" CMD config CC`;
-CPP=`"${RBIN}" CMD config CPP`;
+## since R 3.6 we can't use CPP but NEWS recommends $CC -E
+CPP="${CC} -E"
 CFLAGS=`"${RBIN}" CMD config CFLAGS`
 CPPFLAGS=`"${RBIN}" CMD config CPPFLAGS`
 if test -n "${PKG_CPPFLAGS}"; then
@@ -41,6 +42,15 @@ AC_CHECK_MEMBER(struct sockaddr.sa_len,
                 AC_DEFINE_UNQUOTED(HAVE_SA_LEN,1,[Define if struct sockaddr contains sa_len]),,
         [#include <sys/types.h>
          #include <sys/socket.h>])
+
+## NOTE: the current util-linux which has taken over libuuid also uses
+## check for HAVE_TLS (thread local storage).
+## However, the AX_CHECK_TLS test in util-linux/m4/tls.m4 is taken from
+## GCC under GPLv2 and we don't want it to infect our license, so we
+## don't check for it. In the current code the only difference when
+## HAVE_TLS is defined is that it adds __thread to static declarations.
+## Given that R uses libuuid only on the main thread this should have
+## no real impact.
 
 AC_CONFIG_FILES([src/Makevars])
 AC_OUTPUT
