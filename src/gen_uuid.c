@@ -309,7 +309,7 @@ static int flock(int fd, int op)
 {
     HANDLE h = (HANDLE) _get_osfhandle(fd);
     OVERLAPPED offset;
-    if (h < 0)
+    if (h == INVALID_HANDLE_VALUE)
 	return -1;
     memset(&offset, 0, sizeof(offset));
     switch (op) {

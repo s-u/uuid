@@ -2,6 +2,12 @@
 /* src/config.h.in.  Generated from configure.ac by autoheader.  */
 /* -- reflects MinGW + Win32 -- */
 
+/* defined if the system supports dlsym */
+/* #undef HAS_DLSYM */
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+/* #undef HAVE_DLFCN_H */
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
