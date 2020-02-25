@@ -541,6 +541,11 @@ void uuid_generate_random(uuid_t out)
  */
 static int have_random_source(void)
 {
+#ifdef _WIN32
+	/* we assume that we can use rand_s() and have thus reasonable RNG on WIN32 */
+	return 1;
+#endif
+
 	struct stat s;
 
 	return (!stat("/dev/random", &s) || !stat("/dev/urandom", &s));

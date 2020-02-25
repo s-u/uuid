@@ -26,7 +26,8 @@ static fn_t dlsym(void *whatever, const char *name) {
 	return (fn_t) sym; /* good */
 
     /* nope, so we have to walk loaded DLLs - annoying, for that we need PSAPI */
-    /* FIXME: if we knew the library with the desired symbols, we could load it directly ... */
+    /* FIXME: if we knew the library with the desired symbols, we could load it directly ...
+       (on Windows 2008 we found all entries in msvcrt.dll - is that reliable?) */
     if (!EnumProcessModulesFn) { /* load from psapi.dll */
 	HMODULE psapi = LoadLibraryA("psapi.dll");
 	if (psapi)
@@ -42,9 +43,21 @@ static fn_t dlsym(void *whatever, const char *name) {
 	    if (n > sizeof(mods))
 		Rf_error("Too many DLL modules.");
 	    n /= sizeof(HMODULE);
-	    for (i = 0; i < n; i++)
+	    for (i = 0; i < n; i++) {
+#ifdef PRINT_DLL_SEARCH
+		static char tb[512];
+		*tb = 0;
+		GetModuleFileNameA(mods[i], tb, sizeof(tb));
+		Rprintf("> %s\n", tb);
+		if ((sym = GetProcAddress(mods[i], name))) {
+		    Rprintf("^-- %s found here\n", name);
+		    return (fn_t) sym;
+		}
+#else
 		if ((sym = GetProcAddress(mods[i], name)))
 		    return (fn_t) sym;
+#endif
+	    }
 	}
     }
     return 0;
@@ -55,11 +68,18 @@ static fn_t dlsym(void *whatever, const char *name) {
 #ifdef HAS_DLSYM
 typedef int(*rand_t)();
 typedef void(*srand_t)(unsigned);
+#ifdef _WIN32
+typedef errno_t (*rand_s_t)(unsigned int *);
+static rand_s_t fn_rand_s;
+#endif
 static rand_t  fn_rand;
 static srand_t fn_srand;
 
 static void load_rand() {
     if (!(fn_rand = (rand_t) dlsym(RTLD_DEFAULT, "rand")) ||
+#ifdef _WIN32
+	!(fn_rand_s = (rand_s_t) dlsym(RTLD_DEFAULT, "rand_s")) ||
+#endif
 	!(fn_srand = (srand_t) dlsym(RTLD_DEFAULT, "srand")))
 	Rf_error("Cannot find entry points for random number generators!");
 }
@@ -67,6 +87,16 @@ static void load_rand() {
 int uuid_rand(void) {
     if (!fn_rand)
 	load_rand();
+#ifdef _WIN32
+    /* on Windows there is no good source and no jrand, and relying on
+       rand() is terribly bad for repeated calls, so we
+       try to use rand_s() which is reportedly tied to crypto API */
+    if (fn_rand_s) {
+	unsigned int res;
+	if (!fn_rand_s(&res))
+	    return (int) res;
+    }
+#endif
     return fn_rand();
 }
 
