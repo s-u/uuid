@@ -8,7 +8,15 @@
 #include <R.h>
 
 #ifdef HAVE_DLFCN_H
+/* on Liunx this need to be set, otherwise RTLD_DEFAULT is not defined */
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
 #include <dlfcn.h>
+/* it *should* be defined in dlfcn.h, but if it's not, we take a guess */
+#ifndef RTLD_DEFAULT
+#define RTLD_DEFAULT ((void *) 0)
+#endif
 #endif
 
 /* there is no dlsym() on Windows, implement it */
