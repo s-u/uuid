@@ -12,7 +12,7 @@
 #define HAVE_INTTYPES_H 1
 
 /* Define to 1 if you have the `flock' function. */
-#define HAVE_FLOCK 1
+/* #undef HAVE_FLOCK */
 
 /* Define to 1 if you have the `jrand48' function. */
 /* #undef HAVE_JRAND48 */
@@ -43,6 +43,13 @@
 
 /* Define to 1 if you have the <string.h> header file. */
 #define HAVE_STRING_H 1
+
+#define HAVE_NANOSLEEP 1
+
+#define HAVE_USLEEP 1
+
+/* not defined, so we define it to 0 */
+#define O_CLOEXEC 0
 
 /* Define to 1 if you have the <sys/file.h> header file. */
 #define HAVE_SYS_FILE_H 1

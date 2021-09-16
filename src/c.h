@@ -17,7 +17,9 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/types.h>
+#ifdef HAVE_GRP_H
 #include <grp.h>
+#endif
 
 #include <assert.h>
 
@@ -231,8 +233,10 @@ errmsg(char doexit, int excode, char adderr, const char *fmt, ...)
 		if (adderr)
 			fprintf(stderr, ": ");
 	}
+#ifndef _WIN32
 	if (adderr)
 		fprintf(stderr, "%m");
+#endif
 	fprintf(stderr, "\n");
 	if (doexit)
 		exit(excode);
@@ -324,10 +328,12 @@ static inline int dirfd(DIR *d)
  */
 static inline size_t get_hostname_max(void)
 {
+#ifndef WIN32
 	long len = sysconf(_SC_HOST_NAME_MAX);
 
 	if (0 < len)
 		return len;
+#endif
 
 #ifdef MAXHOSTNAMELEN
 	return MAXHOSTNAMELEN;
@@ -340,6 +346,9 @@ static inline size_t get_hostname_max(void)
 
 static inline int drop_permissions(void)
 {
+#ifdef _WIN32
+	return 0;
+#else
 	errno = 0;
 
 	/* drop GID */
@@ -353,6 +362,7 @@ static inline int drop_permissions(void)
 	return 0;
 fail:
 	return errno ? -errno : -1;
+#endif
 }
 
 /*

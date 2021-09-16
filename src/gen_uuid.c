@@ -96,30 +96,6 @@
 #define THREAD_LOCAL static
 #endif
 
-#ifdef _WIN32
-static void gettimeofday (struct timeval *tv, void *dummy)
-{
-	FILETIME	ftime;
-	uint64_t	n;
-
-	GetSystemTimeAsFileTime (&ftime);
-	n = (((uint64_t) ftime.dwHighDateTime << 32)
-	     + (uint64_t) ftime.dwLowDateTime);
-	if (n) {
-		n /= 10;
-		n -= ((369 * 365 + 89) * (uint64_t) 86400) * 1000000;
-	}
-
-	tv->tv_sec = n / 1000000;
-	tv->tv_usec = n % 1000000;
-}
-
-static int getuid (void)
-{
-	return 1;
-}
-#endif
-
 /*
  * Get the ethernet hardware address, if we can find it...
  *
@@ -221,15 +197,20 @@ static int get_clock(uint32_t *clock_high, uint32_t *clock_low,
 {
 	THREAD_LOCAL int		adjustment = 0;
 	THREAD_LOCAL struct timeval	last = {0, 0};
-	THREAD_LOCAL int		state_fd = -2;
-	THREAD_LOCAL FILE		*state_f;
 	THREAD_LOCAL uint16_t		clock_seq;
 	struct timeval			tv;
 	uint64_t			clock_reg;
+#ifndef _WIN32
 	mode_t				save_umask;
 	int				len;
+	THREAD_LOCAL FILE		*state_f;
+	THREAD_LOCAL int		state_fd = -2;
+#endif
 	int				ret = 0;
 
+#ifdef _WIN32
+	ret = -1;
+#else
 	if (state_fd == -1)
 		ret = -1;
 
@@ -280,6 +261,7 @@ static int get_clock(uint32_t *clock_high, uint32_t *clock_low,
 		gettimeofday(&last, NULL);
 		last.tv_sec--;
 	}
+#endif
 
 try_again:
 	gettimeofday(&tv, NULL);
@@ -311,6 +293,7 @@ try_again:
 		last.tv_usec = last.tv_usec % 1000000;
 	}
 
+#ifndef _WIN32
 	if (state_fd >= 0) {
 		rewind(state_f);
 		len = fprintf(state_f,
@@ -324,6 +307,7 @@ try_again:
 		rewind(state_f);
 		flock(state_fd, LOCK_UN);
 	}
+#endif
 
 	*clock_high = clock_reg >> 32;
 	*clock_low = clock_reg;

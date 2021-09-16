@@ -56,6 +56,10 @@ int rand_get_number(int low_n, int high_n)
 	return rand() % (high_n - low_n + 1) + low_n;
 }
 
+#ifdef _WIN32
+static int getuid() { return 1; }
+#endif
+
 static void crank_random(void)
 {
 	int i;
@@ -80,7 +84,9 @@ static void crank_random(void)
 
 int random_get_fd(void)
 {
-	int i, fd;
+	int fd = -1;
+#ifndef _WIN32
+	int i;
 
 	fd = open("/dev/urandom", O_RDONLY | O_CLOEXEC);
 	if (fd == -1)
@@ -90,6 +96,7 @@ int random_get_fd(void)
 		if (i >= 0)
 			fcntl(fd, F_SETFD, i | FD_CLOEXEC);
 	}
+#endif
 	crank_random();
 	return fd;
 }
@@ -183,6 +190,11 @@ int ul_random_get_bytes(void *buf, size_t nbytes)
 	}
 #endif
 
+#ifdef _WIN32 /* this is our R-specific thing: we replace rand() with an implementation
+		 using rand_s() which returns crypto-grade RNG so we know it is good
+		 (or so M$ tells us ;)) */
+	n = 0;
+#endif
 	return n != 0;
 }
 
