@@ -32,15 +32,6 @@
  * %End-Header%
  */
 
-/*
- * Force inclusion of SVID stuff since we need it if we're compiling in
- * gcc-wall wall mode
- * But not deprecated in glibc >= 20, and not needed nowadays.
- */
-/* #define _SVID_SOURCE */
-
-#include "config.h"
-
 #ifdef _WIN32
 #define _WIN32_WINNT 0x0500
 #include <windows.h>
@@ -90,8 +81,14 @@
 #include <sys/syscall.h>
 #endif
 
+#include "all-io.h"
 #include "uuidP.h"
 #include "uuidd.h"
+#include "randutils.h"
+#include "strutils.h"
+#include "c.h"
+#include "md5.h"
+#include "sha1.h"
 
 #ifdef HAVE_TLS
 #define THREAD_LOCAL static __thread
@@ -99,11 +96,7 @@
 #define THREAD_LOCAL static
 #endif
 
-extern int uuid_rand(void);
-extern void uuid_srand(unsigned seed);
-
 #ifdef _WIN32
-#if 0 /* MinGW has gettimeofday so we don't need this */
 static void gettimeofday (struct timeval *tv, void *dummy)
 {
 	FILETIME	ftime;
@@ -120,7 +113,6 @@ static void gettimeofday (struct timeval *tv, void *dummy)
 	tv->tv_sec = n / 1000000;
 	tv->tv_usec = n % 1000000;
 }
-#endif
 
 static int getuid (void)
 {
@@ -144,7 +136,7 @@ static int get_node_id(unsigned char *node_id)
 	struct ifconf	ifc;
 	char buf[1024];
 	int		n, i;
-	unsigned char	*a;
+	unsigned char	*a = NULL;
 #ifdef HAVE_NET_IF_DL_H
 	struct sockaddr_dl *sdlp;
 #endif
@@ -156,7 +148,6 @@ static int get_node_id(unsigned char *node_id)
  * just sizeof(struct ifreq)
  */
 #ifdef HAVE_SA_LEN
-#define max(x, y) (((x) > (y)) ? (x) : (y))
 #define ifreq_size(i) max(sizeof(struct ifreq),\
      sizeof((i).ifr_name)+(i).ifr_addr.sa_len)
 #else
@@ -203,7 +194,7 @@ static int get_node_id(unsigned char *node_id)
 #endif /* HAVE_NET_IF_DL_H */
 #endif /* SIOCGENADDR */
 #endif /* SIOCGIFHWADDR */
-		if (!a[0] && !a[1] && !a[2] && !a[3] && !a[4] && !a[5])
+		if (a == NULL || (!a[0] && !a[1] && !a[2] && !a[3] && !a[4] && !a[5]))
 			continue;
 		if (node_id) {
 			memcpy(node_id, a, 6);
@@ -215,113 +206,6 @@ static int get_node_id(unsigned char *node_id)
 #endif
 	return 0;
 }
-
-#if defined(__linux__) && defined(__NR_gettid) && defined(HAVE_JRAND48)
-#define DO_JRAND_MIX
-static unsigned short ul_jrand_seed[3];
-#endif
-
-static int random_get_fd(void)
-{
-    int i, fd = -1;
-    struct timeval  tv;
-
-    gettimeofday(&tv, 0);
-#ifndef _WIN32
-    fd = open("/dev/urandom", O_RDONLY);
-    if (fd == -1)
-	fd = open("/dev/random", O_RDONLY | O_NONBLOCK);
-    if (fd >= 0) {
-	i = fcntl(fd, F_GETFD);
-	if (i >= 0)
-	    fcntl(fd, F_SETFD, i | FD_CLOEXEC);
-    }
-#endif
-    uuid_srand((getpid() << 16) ^ getuid() ^ tv.tv_sec ^ tv.tv_usec);
-
-#ifdef DO_JRAND_MIX
-    ul_jrand_seed[0] = getpid() ^ (tv.tv_sec & 0xFFFF);
-    ul_jrand_seed[1] = getppid() ^ (tv.tv_usec & 0xFFFF);
-    ul_jrand_seed[2] = (tv.tv_sec ^ tv.tv_usec) >> 16;
-#endif
-    /* Crank the random number generator a few times */
-    gettimeofday(&tv, 0);
-    for (i = (tv.tv_sec ^ tv.tv_usec) & 0x1F; i > 0; i--)
-	uuid_rand();
-    return fd;
-}
-
-/*
- * Generate a stream of random nbytes into buf.
- * Use /dev/urandom if possible, and if not,
- * use glibc pseudo-random functions.
- */
-static void random_get_bytes(void *buf, size_t nbytes)
-{
-    size_t i, n = nbytes;
-    int fd = random_get_fd();
-    int lose_counter = 0;
-    unsigned char *cp = (unsigned char *) buf;
-
-    if (fd >= 0) {
-	while (n > 0) {
-	    ssize_t x = read(fd, cp, n);
-	    if (x <= 0) {
-		if (lose_counter++ > 16)
-		    break;
-		continue;
-	    }
-	    n -= x;
-	    cp += x;
-	    lose_counter = 0;
-	}
-
-	close(fd);
-    }
-
-    /*
-     * We do this all the time, but this is the only source of
-     * randomness if /dev/random/urandom is out to lunch.
-     */
-    for (cp = buf, i = 0; i < nbytes; i++)
-	*cp++ ^= (uuid_rand() >> 7) & 0xFF;
-
-#ifdef DO_JRAND_MIX
-    {
-	unsigned short tmp_seed[3];
-
-	memcpy(tmp_seed, ul_jrand_seed, sizeof(tmp_seed));
-	ul_jrand_seed[2] = ul_jrand_seed[2] ^ syscall(__NR_gettid);
-	for (cp = buf, i = 0; i < nbytes; i++)
-	    *cp++ ^= (jrand48(tmp_seed) >> 7) & 0xFF;
-	memcpy(ul_jrand_seed, tmp_seed,
-	       sizeof(ul_jrand_seed)-sizeof(unsigned short));
-    }
-#endif
-
-    return;
-}
-
-#ifdef _WIN32 /* compatibility layer */
-#define LOCK_EX 1
-#define LOCK_UN 2
-static int flock(int fd, int op)
-{
-    HANDLE h = (HANDLE) _get_osfhandle(fd);
-    OVERLAPPED offset;
-    if (h == INVALID_HANDLE_VALUE)
-	return -1;
-    memset(&offset, 0, sizeof(offset));
-    switch (op) {
-    case LOCK_EX:
-	return (LockFileEx(h, LOCKFILE_EXCLUSIVE_LOCK, 0, 1, 0, &offset)) ? 0 : -1;
-    case LOCK_UN:
-	UnlockFileEx(h, 0, 1, 0, &offset);
-	return 0;
-    }
-    return -1;
-}
-#endif
 
 /* Assume that the gettimeofday() has microsecond granularity */
 #define MAX_ADJUSTMENT 10
@@ -346,12 +230,15 @@ static int get_clock(uint32_t *clock_high, uint32_t *clock_low,
 	int				len;
 	int				ret = 0;
 
+	if (state_fd == -1)
+		ret = -1;
+
 	if (state_fd == -2) {
 		save_umask = umask(0);
-		state_fd = open(LIBUUID_CLOCK_FILE, O_RDWR|O_CREAT, 0660);
+		state_fd = open(LIBUUID_CLOCK_FILE, O_RDWR|O_CREAT|O_CLOEXEC, 0660);
 		(void) umask(save_umask);
 		if (state_fd != -1) {
-			state_f = fdopen(state_fd, "r+");
+			state_f = fdopen(state_fd, "r+" UL_CLOEXECSTR);
 			if (!state_f) {
 				close(state_fd);
 				state_fd = -1;
@@ -363,7 +250,6 @@ static int get_clock(uint32_t *clock_high, uint32_t *clock_low,
 	}
 	if (state_fd >= 0) {
 		rewind(state_f);
-#ifdef HAVE_FLOCK
 		while (flock(state_fd, LOCK_EX) < 0) {
 			if ((errno == EAGAIN) || (errno == EINTR))
 				continue;
@@ -373,7 +259,6 @@ static int get_clock(uint32_t *clock_high, uint32_t *clock_low,
 			ret = -1;
 			break;
 		}
-#endif
 	}
 	if (state_fd >= 0) {
 		unsigned int cl;
@@ -390,14 +275,14 @@ static int get_clock(uint32_t *clock_high, uint32_t *clock_low,
 	}
 
 	if ((last.tv_sec == 0) && (last.tv_usec == 0)) {
-		random_get_bytes(&clock_seq, sizeof(clock_seq));
+		ul_random_get_bytes(&clock_seq, sizeof(clock_seq));
 		clock_seq &= 0x3FFF;
-		gettimeofday(&last, 0);
+		gettimeofday(&last, NULL);
 		last.tv_sec--;
 	}
 
 try_again:
-	gettimeofday(&tv, 0);
+	gettimeofday(&tv, NULL);
 	if ((tv.tv_sec < last.tv_sec) ||
 	    ((tv.tv_sec == last.tv_sec) &&
 	     (tv.tv_usec < last.tv_usec))) {
@@ -429,17 +314,15 @@ try_again:
 	if (state_fd >= 0) {
 		rewind(state_f);
 		len = fprintf(state_f,
-			      "clock: %04x tv: %016lu %08lu adj: %08d\n",
-			      clock_seq, (unsigned long) last.tv_sec, (unsigned long) last.tv_usec, adjustment);
+			      "clock: %04x tv: %016ld %08ld adj: %08d\n",
+			      clock_seq, (long)last.tv_sec, (long)last.tv_usec, adjustment);
 		fflush(state_f);
 		if (ftruncate(state_fd, len) < 0) {
 			fprintf(state_f, "                   \n");
 			fflush(state_f);
 		}
 		rewind(state_f);
-#ifdef HAVE_FLOCK
 		flock(state_fd, LOCK_UN);
-#endif
 	}
 
 	*clock_high = clock_reg >> 32;
@@ -448,6 +331,77 @@ try_again:
 	return ret;
 }
 
+#if defined(HAVE_UUIDD) && defined(HAVE_SYS_UN_H)
+
+/*
+ * Try using the uuidd daemon to generate the UUID
+ *
+ * Returns 0 on success, non-zero on failure.
+ */
+static int get_uuid_via_daemon(int op, uuid_t out, int *num)
+{
+	char op_buf[64];
+	int op_len;
+	int s;
+	ssize_t ret;
+	int32_t reply_len = 0, expected = 16;
+	struct sockaddr_un srv_addr;
+
+	if (sizeof(UUIDD_SOCKET_PATH) > sizeof(srv_addr.sun_path))
+		return -1;
+
+	if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
+		return -1;
+
+	srv_addr.sun_family = AF_UNIX;
+	xstrncpy(srv_addr.sun_path, UUIDD_SOCKET_PATH, sizeof(srv_addr.sun_path));
+
+	if (connect(s, (const struct sockaddr *) &srv_addr,
+		    sizeof(struct sockaddr_un)) < 0)
+		goto fail;
+
+	op_buf[0] = op;
+	op_len = 1;
+	if (op == UUIDD_OP_BULK_TIME_UUID) {
+		memcpy(op_buf+1, num, sizeof(*num));
+		op_len += sizeof(*num);
+		expected += sizeof(*num);
+	}
+
+	ret = write(s, op_buf, op_len);
+	if (ret < 1)
+		goto fail;
+
+	ret = read_all(s, (char *) &reply_len, sizeof(reply_len));
+	if (ret < 0)
+		goto fail;
+
+	if (reply_len != expected)
+		goto fail;
+
+	ret = read_all(s, op_buf, reply_len);
+
+	if (op == UUIDD_OP_BULK_TIME_UUID)
+		memcpy(op_buf+16, num, sizeof(int));
+
+	memcpy(out, op_buf, 16);
+
+	close(s);
+	return ((ret == expected) ? 0 : -1);
+
+fail:
+	close(s);
+	return -1;
+}
+
+#else /* !defined(HAVE_UUIDD) && defined(HAVE_SYS_UN_H) */
+static int get_uuid_via_daemon(int op __attribute__((__unused__)),
+				uuid_t out __attribute__((__unused__)),
+				int *num __attribute__((__unused__)))
+{
+	return -1;
+}
+#endif
 
 int __uuid_generate_time(uuid_t out, int *num)
 {
@@ -459,7 +413,7 @@ int __uuid_generate_time(uuid_t out, int *num)
 
 	if (!has_init) {
 		if (get_node_id(node_id) <= 0) {
-			random_get_bytes(node_id, 6);
+			ul_random_get_bytes(node_id, 6);
 			/*
 			 * Set multicast bit, to prevent conflicts
 			 * with IEEE 802 addresses obtained from
@@ -481,10 +435,51 @@ int __uuid_generate_time(uuid_t out, int *num)
 /*
  * Generate time-based UUID and store it to @out
  *
- * Since there is no daemon here, use fall-back right away
+ * Tries to guarantee uniqueness of the generated UUIDs by obtaining them from the uuidd daemon,
+ * or, if uuidd is not usable, by using the global clock state counter (see get_clock()).
+ * If neither of these is possible (e.g. because of insufficient permissions), it generates
+ * the UUID anyway, but returns -1. Otherwise, returns 0.
  */
 static int uuid_generate_time_generic(uuid_t out) {
-	return __uuid_generate_time(out, 0);
+#ifdef HAVE_TLS
+	THREAD_LOCAL int		num = 0;
+	THREAD_LOCAL struct uuid	uu;
+	THREAD_LOCAL time_t		last_time = 0;
+	time_t				now;
+
+	if (num > 0) {
+		now = time(NULL);
+		if (now > last_time+1)
+			num = 0;
+	}
+	if (num <= 0) {
+		num = 1000;
+		if (get_uuid_via_daemon(UUIDD_OP_BULK_TIME_UUID,
+					out, &num) == 0) {
+			last_time = time(NULL);
+			uuid_unpack(out, &uu);
+			num--;
+			return 0;
+		}
+		num = 0;
+	}
+	if (num > 0) {
+		uu.time_low++;
+		if (uu.time_low == 0) {
+			uu.time_mid++;
+			if (uu.time_mid == 0)
+				uu.time_hi_and_version++;
+		}
+		num--;
+		uuid_pack(&uu, out);
+		return 0;
+	}
+#else
+	if (get_uuid_via_daemon(UUIDD_OP_TIME_UUID, out, 0) == 0)
+		return 0;
+#endif
+
+	return __uuid_generate_time(out, NULL);
 }
 
 /*
@@ -504,11 +499,11 @@ int uuid_generate_time_safe(uuid_t out)
 }
 
 
-void __uuid_generate_random(uuid_t out, int *num)
+int __uuid_generate_random(uuid_t out, int *num)
 {
 	uuid_t	buf;
 	struct uuid uu;
-	int i, n;
+	int i, n, r = 0;
 
 	if (!num || !*num)
 		n = 1;
@@ -516,7 +511,8 @@ void __uuid_generate_random(uuid_t out, int *num)
 		n = *num;
 
 	for (i = 0; i < n; i++) {
-		random_get_bytes(buf, sizeof(buf));
+		if (ul_random_get_bytes(buf, sizeof(buf)))
+			r = -1;
 		uuid_unpack(buf, &uu);
 
 		uu.clock_seq = (uu.clock_seq & 0x3FFF) | 0x8000;
@@ -525,6 +521,8 @@ void __uuid_generate_random(uuid_t out, int *num)
 		uuid_pack(&uu, out);
 		out += sizeof(uuid_t);
 	}
+
+	return r;
 }
 
 void uuid_generate_random(uuid_t out)
@@ -536,32 +534,66 @@ void uuid_generate_random(uuid_t out)
 }
 
 /*
- * Check whether good random source (/dev/random or /dev/urandom)
- * is available.
- */
-static int have_random_source(void)
-{
-#ifdef _WIN32
-	/* we assume that we can use rand_s() and have thus reasonable RNG on WIN32 */
-	return 1;
-#endif
-
-	struct stat s;
-
-	return (!stat("/dev/random", &s) || !stat("/dev/urandom", &s));
-}
-
-
-/*
- * This is the generic front-end to uuid_generate_random and
- * uuid_generate_time.  It uses uuid_generate_random only if
- * /dev/urandom is available, since otherwise we won't have
- * high-quality randomness.
+ * This is the generic front-end to __uuid_generate_random and
+ * uuid_generate_time.  It uses __uuid_generate_random output
+ * only if high-quality randomness is available.
  */
 void uuid_generate(uuid_t out)
 {
-	if (have_random_source())
-		uuid_generate_random(out);
-	else
+	int num = 1;
+
+	if (__uuid_generate_random(out, &num))
 		uuid_generate_time(out);
+}
+
+/*
+ * Generate an MD5 hashed (predictable) UUID based on a well-known UUID
+ * providing the namespace and an arbitrary binary string.
+ */
+void uuid_generate_md5(uuid_t out, const uuid_t ns, const char *name, size_t len)
+{
+	UL_MD5_CTX ctx;
+	char hash[UL_MD5LENGTH];
+	uuid_t buf;
+	struct uuid uu;
+
+	ul_MD5Init(&ctx);
+	ul_MD5Update(&ctx, ns, sizeof(uuid_t));
+	ul_MD5Update(&ctx, (const unsigned char *)name, len);
+	ul_MD5Final((unsigned char *)hash, &ctx);
+
+	assert(sizeof(buf) <= sizeof(hash));
+
+	memcpy(buf, hash, sizeof(buf));
+	uuid_unpack(buf, &uu);
+
+	uu.clock_seq = (uu.clock_seq & 0x3FFF) | 0x8000;
+	uu.time_hi_and_version = (uu.time_hi_and_version & 0x0FFF) | 0x3000;
+	uuid_pack(&uu, out);
+}
+
+/*
+ * Generate a SHA1 hashed (predictable) UUID based on a well-known UUID
+ * providing the namespace and an arbitrary binary string.
+ */
+void uuid_generate_sha1(uuid_t out, const uuid_t ns, const char *name, size_t len)
+{
+	UL_SHA1_CTX ctx;
+	char hash[UL_SHA1LENGTH];
+	uuid_t buf;
+	struct uuid uu;
+
+	ul_SHA1Init(&ctx);
+	ul_SHA1Update(&ctx, ns, sizeof(uuid_t));
+	ul_SHA1Update(&ctx, (const unsigned char *)name, len);
+	ul_SHA1Final((unsigned char *)hash, &ctx);
+
+	assert(sizeof(buf) <= sizeof(hash));
+
+	memcpy(buf, hash, sizeof(buf));
+	uuid_unpack(buf, &uu);
+
+	uu.clock_seq = (uu.clock_seq & 0x3FFF) | 0x8000;
+	uu.time_hi_and_version = (uu.time_hi_and_version & 0x0FFF) | 0x5000;
+	uuid_pack(&uu, out);
 }
