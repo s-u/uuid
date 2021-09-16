@@ -3350,7 +3350,7 @@ fi
 done
 
 
-for ac_header in netinet/in.h stdlib.h sys/file.h \
+for ac_header in langinfo.h locale.h netinet/in.h stdlib.h sys/file.h \
  sys/ioctl.h sys/socket.h sys/sockio.h sys/syscall.h sys/time.h sys/un.h \
  unistd.h
 do :
@@ -3383,12 +3383,33 @@ fi
 done
 
 
-for ac_func in jrand48
+for ac_func in  \
+  dirfd \
+  err \
+  errx \
+  getexecname \
+  getrandom \
+  jrand48 \
+  llseek \
+  lchown \
+  mempcpy \
+  mkostemp \
+  nanosleep \
+  sendfile \
+  srandom \
+  strnchr \
+  strndup \
+  strnlen \
+  usleep \
+  warn \
+  warnx
+
 do :
-  ac_fn_c_check_func "$LINENO" "jrand48" "ac_cv_func_jrand48"
-if test "x$ac_cv_func_jrand48" = xyes; then :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_JRAND48 1
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
 _ACEOF
 
 fi
@@ -3491,14 +3512,32 @@ $as_echo "#define HAS_DLSYM 1" >>confdefs.h
 fi
 
 
-## NOTE: the current util-linux which has taken over libuuid also uses
-## check for HAVE_TLS (thread local storage).
-## However, the AX_CHECK_TLS test in util-linux/m4/tls.m4 is taken from
-## GCC under GPLv2 and we don't want it to infect our license, so we
-## don't check for it. In the current code the only difference when
-## HAVE_TLS is defined is that it adds __thread to static declarations.
-## Given that R uses libuuid only on the main thread this should have
-## no real impact.
+## note the libuuid only uses __thread so that's the only one to test for
+have_tls=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for thread local storage (TLS) support" >&5
+$as_echo_n "checking for thread local storage (TLS) support... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+static __thread int x;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  have_tls=yes
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $have_tls" >&5
+$as_echo "$have_tls" >&6; }
+if test x$have_tls = xyes; then
+
+$as_echo "#define HAVE_TLS 1" >>confdefs.h
+
+fi
 
 ac_config_files="$ac_config_files src/Makevars"
 

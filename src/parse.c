@@ -40,6 +40,8 @@
 #include "c.h"
 #include "uuidP.h"
 
+int uuid_parse_range(const char *in_start, const char *in_end, uuid_t uu);
+
 int uuid_parse(const char *in, uuid_t uu)
 {
 	size_t len = strlen(in);
