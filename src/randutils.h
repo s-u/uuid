@@ -10,7 +10,7 @@
 #define rand()		uuid_random()
 #else
 #define srand(x) uuid_srand(x)
-#define rand()   uuid_rand
+#define rand()   uuid_rand()
 #endif
 
 /* from rand.c */
