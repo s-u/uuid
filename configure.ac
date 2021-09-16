@@ -23,7 +23,7 @@ AC_PROG_CC
 
 LIBS="${PKG_LIBS}"
 
-AC_CHECK_HEADERS([langinfo.h locale.h netinet/in.h stdlib.h sys/file.h \
+AC_CHECK_HEADERS([grp.h langinfo.h locale.h netinet/in.h stdlib.h sys/file.h \
  sys/ioctl.h sys/socket.h sys/sockio.h sys/syscall.h sys/time.h sys/un.h \
  unistd.h])
 AC_CHECK_HEADERS([net/if.h net/if_dl.h], [], [], 

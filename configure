@@ -3350,7 +3350,7 @@ fi
 done
 
 
-for ac_header in langinfo.h locale.h netinet/in.h stdlib.h sys/file.h \
+for ac_header in grp.h langinfo.h locale.h netinet/in.h stdlib.h sys/file.h \
  sys/ioctl.h sys/socket.h sys/sockio.h sys/syscall.h sys/time.h sys/un.h \
  unistd.h
 do :
