@@ -1,0 +1,44 @@
+diff --git a/src/parse.c b/src/parse.c
+index d0c69b0..69718fd 100644
+--- a/src/parse.c
++++ b/src/parse.c
+@@ -40,6 +40,8 @@
+ #include "c.h"
+ #include "uuidP.h"
+ 
++int uuid_parse_range(const char *in_start, const char *in_end, uuid_t uu);
++
+ int uuid_parse(const char *in, uuid_t uu)
+ {
+ 	size_t len = strlen(in);
+diff --git a/src/randutils.h b/src/randutils.h
+index 690bf5e..abae01e 100644
+--- a/src/randutils.h
++++ b/src/randutils.h
+@@ -1,11 +1,24 @@
+ #ifndef UTIL_LINUX_RANDUTILS
+ #define UTIL_LINUX_RANDUTILS
+ 
++/* map dynamic symbols */
++#define srandom(x) uuid_srandom(x)
++#define random()   uuid_random()
++
+ #ifdef HAVE_SRANDOM
+-#define srand(x)	srandom(x)
+-#define rand()		random()
++#define srand(x)	uuid_srandom(x)
++#define rand()		uuid_random()
++#else
++#define srand(x) uuid_srand(x)
++#define rand()   uuid_rand
+ #endif
+ 
++/* from rand.c */
++extern int uuid_rand(void);
++extern void uuid_srand(unsigned seed);
++extern long uuid_random(void);
++extern void uuid_srandom(unsigned seed);
++
+ /* rand() based */
+ extern int rand_get_number(int low_n, int high_n);
+ 
