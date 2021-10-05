@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(uuid, 0.1, Simon.Urbanek@r-project.org)
+AC_INIT([uuid],[0.1],[Simon.Urbanek@r-project.org])
 AC_CONFIG_SRCDIR([src/R.c])
-AC_CONFIG_HEADER([src/config.h])
+AC_CONFIG_HEADERS([src/config.h])
 
 # find R home and set CC/CFLAGS
 : ${R_HOME=`R RHOME`}
