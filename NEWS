@@ -1,7 +1,7 @@
  NEWS for uuid
 ---------------
 
-1.0-1	2021-1-19
+1.0-1	2021-10-19
     o	update to latest upstream libuuid sources
 	(util-linux c4a543ff, libuuid e6743239)
 
