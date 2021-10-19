@@ -1,6 +1,14 @@
  NEWS for uuid
 ---------------
 
+1.0-1	2021-1-19
+    o	update to latest upstream libuuid sources
+	(util-linux c4a543ff, libuuid e6743239)
+
+    o	Add LinkingTo: API allowing other packages to
+	use UUID generation from C code
+
+
 0.1-4	2020-02-26
     o	add `n' parameter to UUIDgenerate() to generate
 	multiple UUIDs at once (#2)
