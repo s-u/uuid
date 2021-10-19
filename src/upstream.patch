@@ -1,7 +1,145 @@
-diff --git a/src/parse.c b/src/parse.c
+diff --git b/src/c.h a/src/c.h
+index 354b59e..b0b8297 100644
+--- b/src/c.h
++++ a/src/c.h
+@@ -17,7 +17,9 @@
+ #include <string.h>
+ #include <errno.h>
+ #include <sys/types.h>
++#ifdef HAVE_GRP_H
+ #include <grp.h>
++#endif
+ 
+ #include <assert.h>
+ 
+@@ -231,8 +233,10 @@ errmsg(char doexit, int excode, char adderr, const char *fmt, ...)
+ 		if (adderr)
+ 			fprintf(stderr, ": ");
+ 	}
++#ifndef _WIN32
+ 	if (adderr)
+ 		fprintf(stderr, "%m");
++#endif
+ 	fprintf(stderr, "\n");
+ 	if (doexit)
+ 		exit(excode);
+@@ -324,10 +328,12 @@ static inline int dirfd(DIR *d)
+  */
+ static inline size_t get_hostname_max(void)
+ {
++#ifndef WIN32
+ 	long len = sysconf(_SC_HOST_NAME_MAX);
+ 
+ 	if (0 < len)
+ 		return len;
++#endif
+ 
+ #ifdef MAXHOSTNAMELEN
+ 	return MAXHOSTNAMELEN;
+@@ -340,6 +346,9 @@ static inline size_t get_hostname_max(void)
+ 
+ static inline int drop_permissions(void)
+ {
++#ifdef _WIN32
++	return 0;
++#else
+ 	errno = 0;
+ 
+ 	/* drop GID */
+@@ -353,6 +362,7 @@ static inline int drop_permissions(void)
+ 	return 0;
+ fail:
+ 	return errno ? -errno : -1;
++#endif
+ }
+ 
+ /*
+diff --git b/src/gen_uuid.c a/src/gen_uuid.c
+index d353fa1..5ce00be 100644
+--- b/src/gen_uuid.c
++++ a/src/gen_uuid.c
+@@ -96,30 +96,6 @@
+ #define THREAD_LOCAL static
+ #endif
+ 
+-#ifdef _WIN32
+-static void gettimeofday (struct timeval *tv, void *dummy)
+-{
+-	FILETIME	ftime;
+-	uint64_t	n;
+-
+-	GetSystemTimeAsFileTime (&ftime);
+-	n = (((uint64_t) ftime.dwHighDateTime << 32)
+-	     + (uint64_t) ftime.dwLowDateTime);
+-	if (n) {
+-		n /= 10;
+-		n -= ((369 * 365 + 89) * (uint64_t) 86400) * 1000000;
+-	}
+-
+-	tv->tv_sec = n / 1000000;
+-	tv->tv_usec = n % 1000000;
+-}
+-
+-static int getuid (void)
+-{
+-	return 1;
+-}
+-#endif
+-
+ /*
+  * Get the ethernet hardware address, if we can find it...
+  *
+@@ -221,15 +197,20 @@ static int get_clock(uint32_t *clock_high, uint32_t *clock_low,
+ {
+ 	THREAD_LOCAL int		adjustment = 0;
+ 	THREAD_LOCAL struct timeval	last = {0, 0};
+-	THREAD_LOCAL int		state_fd = -2;
+-	THREAD_LOCAL FILE		*state_f;
+ 	THREAD_LOCAL uint16_t		clock_seq;
+ 	struct timeval			tv;
+ 	uint64_t			clock_reg;
++#ifndef _WIN32
+ 	mode_t				save_umask;
+ 	int				len;
++	THREAD_LOCAL FILE		*state_f;
++	THREAD_LOCAL int		state_fd = -2;
++#endif
+ 	int				ret = 0;
+ 
++#ifdef _WIN32
++	ret = -1;
++#else
+ 	if (state_fd == -1)
+ 		ret = -1;
+ 
+@@ -280,6 +261,7 @@ static int get_clock(uint32_t *clock_high, uint32_t *clock_low,
+ 		gettimeofday(&last, NULL);
+ 		last.tv_sec--;
+ 	}
++#endif
+ 
+ try_again:
+ 	gettimeofday(&tv, NULL);
+@@ -311,6 +293,7 @@ try_again:
+ 		last.tv_usec = last.tv_usec % 1000000;
+ 	}
+ 
++#ifndef _WIN32
+ 	if (state_fd >= 0) {
+ 		rewind(state_f);
+ 		len = fprintf(state_f,
+@@ -324,6 +307,7 @@ try_again:
+ 		rewind(state_f);
+ 		flock(state_fd, LOCK_UN);
+ 	}
++#endif
+ 
+ 	*clock_high = clock_reg >> 32;
+ 	*clock_low = clock_reg;
+diff --git b/src/parse.c a/src/parse.c
 index d0c69b0..69718fd 100644
---- a/src/parse.c
-+++ b/src/parse.c
+--- b/src/parse.c
++++ a/src/parse.c
 @@ -40,6 +40,8 @@
  #include "c.h"
  #include "uuidP.h"
@@ -11,10 +149,56 @@ index d0c69b0..69718fd 100644
  int uuid_parse(const char *in, uuid_t uu)
  {
  	size_t len = strlen(in);
-diff --git a/src/randutils.h b/src/randutils.h
-index 690bf5e..abae01e 100644
---- a/src/randutils.h
-+++ b/src/randutils.h
+diff --git b/src/randutils.c a/src/randutils.c
+index 39edf4e..f29fca4 100644
+--- b/src/randutils.c
++++ a/src/randutils.c
+@@ -56,6 +56,10 @@ int rand_get_number(int low_n, int high_n)
+ 	return rand() % (high_n - low_n + 1) + low_n;
+ }
+ 
++#ifdef _WIN32
++static int getuid() { return 1; }
++#endif
++
+ static void crank_random(void)
+ {
+ 	int i;
+@@ -80,7 +84,9 @@ static void crank_random(void)
+ 
+ int random_get_fd(void)
+ {
+-	int i, fd;
++	int fd = -1;
++#ifndef _WIN32
++	int i;
+ 
+ 	fd = open("/dev/urandom", O_RDONLY | O_CLOEXEC);
+ 	if (fd == -1)
+@@ -90,6 +96,7 @@ int random_get_fd(void)
+ 		if (i >= 0)
+ 			fcntl(fd, F_SETFD, i | FD_CLOEXEC);
+ 	}
++#endif
+ 	crank_random();
+ 	return fd;
+ }
+@@ -183,6 +190,11 @@ int ul_random_get_bytes(void *buf, size_t nbytes)
+ 	}
+ #endif
+ 
++#ifdef _WIN32 /* this is our R-specific thing: we replace rand() with an implementation
++		 using rand_s() which returns crypto-grade RNG so we know it is good
++		 (or so M$ tells us ;)) */
++	n = 0;
++#endif
+ 	return n != 0;
+ }
+ 
+diff --git b/src/randutils.h a/src/randutils.h
+index 690bf5e..be10121 100644
+--- b/src/randutils.h
++++ a/src/randutils.h
 @@ -1,11 +1,24 @@
  #ifndef UTIL_LINUX_RANDUTILS
  #define UTIL_LINUX_RANDUTILS
@@ -30,7 +214,7 @@ index 690bf5e..abae01e 100644
 +#define rand()		uuid_random()
 +#else
 +#define srand(x) uuid_srand(x)
-+#define rand()   uuid_rand
++#define rand()   uuid_rand()
  #endif
  
 +/* from rand.c */
