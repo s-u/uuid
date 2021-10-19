@@ -15,9 +15,9 @@ typedef void(*RU_unparse_t)(uuid_t uuid, char *out, int lower);
 
 /* sample use:
 
-RU_generate_t generate_fn = (RU_generate_t*) R_GetCCallable("uuid", "generate");
-RU_parse_t    parse_fn    = (RU_parse_t*) R_GetCCallable("uuid", "parse");
-RU_unparse_t  unparse_fn  = (RU_unparse_t*) R_GetCCallable("uuid", "unparse");
+RU_generate_t generate_fn = (RU_generate_t) R_GetCCallable("uuid", "generate");
+RU_parse_t    parse_fn    = (RU_parse_t) R_GetCCallable("uuid", "parse");
+RU_unparse_t  unparse_fn  = (RU_unparse_t) R_GetCCallable("uuid", "unparse");
 
 */
 
