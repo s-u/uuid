@@ -32,7 +32,7 @@
  * %End-Header%
  */
 
-#include <string.h>
+#include "string.h"
 
 #include "uuidP.h"
 

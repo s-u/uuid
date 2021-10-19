@@ -76,17 +76,25 @@ static fn_t dlsym(void *whatever, const char *name) {
 #ifdef HAS_DLSYM
 typedef int(*rand_t)();
 typedef void(*srand_t)(unsigned);
+typedef long(*random_t)();
+typedef void(*srandom_t)(unsigned);
 #ifdef _WIN32
 typedef errno_t (*rand_s_t)(unsigned int *);
-static rand_s_t fn_rand_s;
+static rand_s_t  fn_rand_s;
 #endif
-static rand_t  fn_rand;
-static srand_t fn_srand;
+static rand_t    fn_rand;
+static srand_t   fn_srand;
+static random_t  fn_random;
+static srandom_t fn_srandom;
 
 static void load_rand() {
     if (!(fn_rand = (rand_t) dlsym(RTLD_DEFAULT, "rand")) ||
 #ifdef _WIN32
 	!(fn_rand_s = (rand_s_t) dlsym(RTLD_DEFAULT, "rand_s")) ||
+#endif
+#ifdef HAVE_SRANDOM
+        !(fn_random = (random_t) dlsym(RTLD_DEFAULT, "random")) ||
+        !(fn_srandom = (srandom_t) dlsym(RTLD_DEFAULT, "srandom")) ||
 #endif
 	!(fn_srand = (srand_t) dlsym(RTLD_DEFAULT, "srand")))
 	Rf_error("Cannot find entry points for random number generators!");
@@ -113,6 +121,19 @@ void uuid_srand(unsigned seed) {
 	load_rand();
     fn_srand(seed);
 }
+
+long uuid_random() {
+    if (!fn_srand)
+	load_rand();
+    return fn_random();
+}
+
+void uuid_srandom(unsigned seed) {
+    if (!fn_srand)
+	load_rand();
+    fn_srandom(seed);
+}
+
 #else
 
 /* no way to find symbols, link them directly and deal with the warnings */
@@ -120,5 +141,7 @@ void uuid_srand(unsigned seed) {
 
 int uuid_rand(void) { return rand(); }
 void uuid_srand(unsigned seed) { srand(seed); }
+long uuid_random(void) { return random(); }
+void uuid_srandom(unsigned seed) { srandom(seed); }
 
 #endif

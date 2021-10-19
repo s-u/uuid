@@ -1,1 +1,1 @@
-PKG_CPPFLAGS=-Iwin32
+PKG_CPPFLAGS=-include config.h -Iwin32
