@@ -3381,6 +3381,24 @@ then :
 printf "%s\n" "#define STDC_HEADERS 1" >>confdefs.h
 
 fi
+ac_fn_c_check_header_compile "$LINENO" "grp.h" "ac_cv_header_grp_h" "$ac_includes_default"
+if test "x$ac_cv_header_grp_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_GRP_H 1" >>confdefs.h
+
+fi
+ac_fn_c_check_header_compile "$LINENO" "langinfo.h" "ac_cv_header_langinfo_h" "$ac_includes_default"
+if test "x$ac_cv_header_langinfo_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_LANGINFO_H 1" >>confdefs.h
+
+fi
+ac_fn_c_check_header_compile "$LINENO" "locale.h" "ac_cv_header_locale_h" "$ac_includes_default"
+if test "x$ac_cv_header_locale_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_LOCALE_H 1" >>confdefs.h
+
+fi
 ac_fn_c_check_header_compile "$LINENO" "netinet/in.h" "ac_cv_header_netinet_in_h" "$ac_includes_default"
 if test "x$ac_cv_header_netinet_in_h" = xyes
 then :
@@ -3464,10 +3482,118 @@ then :
 fi
 
 
+ac_fn_c_check_func "$LINENO" "dirfd" "ac_cv_func_dirfd"
+if test "x$ac_cv_func_dirfd" = xyes
+then :
+  printf "%s\n" "#define HAVE_DIRFD 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "err" "ac_cv_func_err"
+if test "x$ac_cv_func_err" = xyes
+then :
+  printf "%s\n" "#define HAVE_ERR 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "errx" "ac_cv_func_errx"
+if test "x$ac_cv_func_errx" = xyes
+then :
+  printf "%s\n" "#define HAVE_ERRX 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "getexecname" "ac_cv_func_getexecname"
+if test "x$ac_cv_func_getexecname" = xyes
+then :
+  printf "%s\n" "#define HAVE_GETEXECNAME 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "getrandom" "ac_cv_func_getrandom"
+if test "x$ac_cv_func_getrandom" = xyes
+then :
+  printf "%s\n" "#define HAVE_GETRANDOM 1" >>confdefs.h
+
+fi
 ac_fn_c_check_func "$LINENO" "jrand48" "ac_cv_func_jrand48"
 if test "x$ac_cv_func_jrand48" = xyes
 then :
   printf "%s\n" "#define HAVE_JRAND48 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "llseek" "ac_cv_func_llseek"
+if test "x$ac_cv_func_llseek" = xyes
+then :
+  printf "%s\n" "#define HAVE_LLSEEK 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "lchown" "ac_cv_func_lchown"
+if test "x$ac_cv_func_lchown" = xyes
+then :
+  printf "%s\n" "#define HAVE_LCHOWN 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "mempcpy" "ac_cv_func_mempcpy"
+if test "x$ac_cv_func_mempcpy" = xyes
+then :
+  printf "%s\n" "#define HAVE_MEMPCPY 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "mkostemp" "ac_cv_func_mkostemp"
+if test "x$ac_cv_func_mkostemp" = xyes
+then :
+  printf "%s\n" "#define HAVE_MKOSTEMP 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "nanosleep" "ac_cv_func_nanosleep"
+if test "x$ac_cv_func_nanosleep" = xyes
+then :
+  printf "%s\n" "#define HAVE_NANOSLEEP 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "sendfile" "ac_cv_func_sendfile"
+if test "x$ac_cv_func_sendfile" = xyes
+then :
+  printf "%s\n" "#define HAVE_SENDFILE 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "srandom" "ac_cv_func_srandom"
+if test "x$ac_cv_func_srandom" = xyes
+then :
+  printf "%s\n" "#define HAVE_SRANDOM 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "strnchr" "ac_cv_func_strnchr"
+if test "x$ac_cv_func_strnchr" = xyes
+then :
+  printf "%s\n" "#define HAVE_STRNCHR 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "strndup" "ac_cv_func_strndup"
+if test "x$ac_cv_func_strndup" = xyes
+then :
+  printf "%s\n" "#define HAVE_STRNDUP 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "strnlen" "ac_cv_func_strnlen"
+if test "x$ac_cv_func_strnlen" = xyes
+then :
+  printf "%s\n" "#define HAVE_STRNLEN 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "usleep" "ac_cv_func_usleep"
+if test "x$ac_cv_func_usleep" = xyes
+then :
+  printf "%s\n" "#define HAVE_USLEEP 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "warn" "ac_cv_func_warn"
+if test "x$ac_cv_func_warn" = xyes
+then :
+  printf "%s\n" "#define HAVE_WARN 1" >>confdefs.h
+
+fi
+ac_fn_c_check_func "$LINENO" "warnx" "ac_cv_func_warnx"
+if test "x$ac_cv_func_warnx" = xyes
+then :
+  printf "%s\n" "#define HAVE_WARNX 1" >>confdefs.h
 
 fi
 
@@ -3565,14 +3691,33 @@ printf "%s\n" "#define HAS_DLSYM 1" >>confdefs.h
 fi
 
 
-## NOTE: the current util-linux which has taken over libuuid also uses
-## check for HAVE_TLS (thread local storage).
-## However, the AX_CHECK_TLS test in util-linux/m4/tls.m4 is taken from
-## GCC under GPLv2 and we don't want it to infect our license, so we
-## don't check for it. In the current code the only difference when
-## HAVE_TLS is defined is that it adds __thread to static declarations.
-## Given that R uses libuuid only on the main thread this should have
-## no real impact.
+## note the libuuid only uses __thread so that's the only one to test for
+have_tls=no
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for thread local storage (TLS) support" >&5
+printf %s "checking for thread local storage (TLS) support... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main (void)
+{
+static __thread int x;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"
+then :
+  have_tls=yes
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $have_tls" >&5
+printf "%s\n" "$have_tls" >&6; }
+if test x$have_tls = xyes; then
+
+printf "%s\n" "#define HAVE_TLS 1" >>confdefs.h
+
+fi
 
 ac_config_files="$ac_config_files src/Makevars"
 
