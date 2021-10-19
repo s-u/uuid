@@ -77,5 +77,9 @@ if test x$have_tls = xyes; then
 	AC_DEFINE(HAVE_TLS, 1, [Thread local storage is supported via __thread])
 fi
 
+## copy LinkingTo: header files
+mkdir -p inst/include
+cp src/*uuid.h inst/include/
+
 AC_CONFIG_FILES([src/Makevars])
 AC_OUTPUT

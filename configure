@@ -3719,6 +3719,10 @@ printf "%s\n" "#define HAVE_TLS 1" >>confdefs.h
 
 fi
 
+## copy LinkingTo: header files
+mkdir -p inst/include
+cp src/*uuid.h inst/include/
+
 ac_config_files="$ac_config_files src/Makevars"
 
 cat >confcache <<\_ACEOF
