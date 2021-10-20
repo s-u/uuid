@@ -220,7 +220,7 @@ prog_inv_sh_nm_from_file(char *f, char stripext)
 #endif
 
 
-#ifndef HAVE_ERR_H
+#if 0 /* HAVE_ERR_H fallback unused and causes issues with ISO C so disable */
 static inline void __attribute__ ((__format__ (__printf__, 4, 5)))
 errmsg(char doexit, int excode, char adderr, const char *fmt, ...)
 {
@@ -233,10 +233,8 @@ errmsg(char doexit, int excode, char adderr, const char *fmt, ...)
 		if (adderr)
 			fprintf(stderr, ": ");
 	}
-#ifndef _WIN32
 	if (adderr)
 		fprintf(stderr, "%m");
-#endif
 	fprintf(stderr, "\n");
 	if (doexit)
 		exit(excode);

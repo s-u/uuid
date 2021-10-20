@@ -12,18 +12,16 @@ index 354b59e..b0b8297 100644
  
  #include <assert.h>
  
-@@ -231,8 +233,10 @@ errmsg(char doexit, int excode, char adderr, const char *fmt, ...)
- 		if (adderr)
- 			fprintf(stderr, ": ");
- 	}
-+#ifndef _WIN32
- 	if (adderr)
- 		fprintf(stderr, "%m");
-+#endif
- 	fprintf(stderr, "\n");
- 	if (doexit)
- 		exit(excode);
-@@ -324,10 +328,12 @@ static inline int dirfd(DIR *d)
+@@ -218,7 +220,7 @@
+ #endif
+ 
+ 
+-#ifndef HAVE_ERR_H
++#if 0 /* HAVE_ERR_H fallback unused and causes issues with ISO C so disable */
+ static inline void __attribute__ ((__format__ (__printf__, 4, 5)))
+ errmsg(char doexit, int excode, char adderr, const char *fmt, ...)
+ {
+@@ -324,10 +326,12 @@
   */
  static inline size_t get_hostname_max(void)
  {
@@ -36,7 +34,7 @@ index 354b59e..b0b8297 100644
  
  #ifdef MAXHOSTNAMELEN
  	return MAXHOSTNAMELEN;
-@@ -340,6 +346,9 @@ static inline size_t get_hostname_max(void)
+@@ -340,6 +344,9 @@
  
  static inline int drop_permissions(void)
  {
@@ -46,7 +44,7 @@ index 354b59e..b0b8297 100644
  	errno = 0;
  
  	/* drop GID */
-@@ -353,6 +362,7 @@ static inline int drop_permissions(void)
+@@ -353,6 +360,7 @@
  	return 0;
  fail:
  	return errno ? -errno : -1;
