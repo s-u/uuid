@@ -1,6 +1,10 @@
  NEWS for uuid
 ---------------
 
+1.0-3
+    o	guard flock() with HAVE_FLOCK for platforms that
+	don't have it
+
 1.0-2	2021-10-25
     o	silence benign sendfile warning from upstream
 
