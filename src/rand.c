@@ -21,11 +21,17 @@
 
 /* there is no dlsym() on Windows, implement it */
 #ifdef _WIN32
+#include <stdlib.h>
 #include <windows.h>
 #define HAS_DLSYM 1
 #define RTLD_DEFAULT NULL
 typedef void(*fn_t)();
 static BOOL (WINAPI *EnumProcessModulesFn)(HANDLE, HMODULE*, DWORD, LPDWORD);
+
+static HMODULE mods_buf[512]; /* we use a static buffer to avoid dynamic allocations */
+static HMODULE *mods = mods_buf;
+static int mods_alloc = sizeof(mods_buf);
+
 static fn_t dlsym(void *whatever, const char *name) {
     FARPROC sym;
     HMODULE hModule = GetModuleHandle(NULL);
@@ -44,12 +50,19 @@ static fn_t dlsym(void *whatever, const char *name) {
     if (!EnumProcessModulesFn)
 	Rf_error("Cannot find PSAPI.DLL");
     {
-        static HMODULE mods[512]; /* we use a static buffer to avoid dynamic allocations */
         DWORD n, i;
-
-        if (EnumProcessModulesFn(GetCurrentProcess(), mods, sizeof(mods), &n)) {
-	    if (n > sizeof(mods))
-		Rf_error("Too many DLL modules.");
+        if (EnumProcessModulesFn(GetCurrentProcess(), mods, mods_alloc, &n)) {
+	    if (n > mods_alloc) {
+		/* we have to allocate more */
+		if (mods != mods_buf)
+		    free(mods);
+		mods_alloc = n + 64;
+		mods = (HMODULE*) malloc(mods_alloc);
+		if (!mods)
+		    Rf_error("Unable to allocate memory for DLL modules");
+		if (!EnumProcessModulesFn(GetCurrentProcess(), mods, mods_alloc, &n))
+		    Rf_error("Cannot load DLL module list");
+	    }
 	    n /= sizeof(HMODULE);
 	    for (i = 0; i < n; i++) {
 #ifdef PRINT_DLL_SEARCH
