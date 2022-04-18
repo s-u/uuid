@@ -1,7 +1,7 @@
-diff --git b/src/c.h a/src/c.h
-index 354b59e..b0b8297 100644
---- b/src/c.h
-+++ a/src/c.h
+diff --git a/src/c.h b/src/c.h
+index db0c58b..c24f295 100644
+--- a/src/c.h
++++ b/src/c.h
 @@ -17,7 +17,9 @@
  #include <string.h>
  #include <errno.h>
@@ -12,7 +12,7 @@ index 354b59e..b0b8297 100644
  
  #include <assert.h>
  
-@@ -218,7 +220,7 @@
+@@ -244,7 +246,7 @@ prog_inv_sh_nm_from_file(char *f, char stripext)
  #endif
  
  
@@ -21,7 +21,7 @@ index 354b59e..b0b8297 100644
  static inline void __attribute__ ((__format__ (__printf__, 4, 5)))
  errmsg(char doexit, int excode, char adderr, const char *fmt, ...)
  {
-@@ -324,10 +326,12 @@
+@@ -350,10 +352,12 @@ static inline int dirfd(DIR *d)
   */
  static inline size_t get_hostname_max(void)
  {
@@ -34,7 +34,7 @@ index 354b59e..b0b8297 100644
  
  #ifdef MAXHOSTNAMELEN
  	return MAXHOSTNAMELEN;
-@@ -340,6 +344,9 @@
+@@ -366,6 +370,9 @@ static inline size_t get_hostname_max(void)
  
  static inline int drop_permissions(void)
  {
@@ -44,7 +44,7 @@ index 354b59e..b0b8297 100644
  	errno = 0;
  
  	/* drop GID */
-@@ -353,6 +360,7 @@
+@@ -379,6 +386,7 @@ static inline int drop_permissions(void)
  	return 0;
  fail:
  	return errno ? -errno : -1;
@@ -52,10 +52,10 @@ index 354b59e..b0b8297 100644
  }
  
  /*
-diff --git b/src/gen_uuid.c a/src/gen_uuid.c
-index d353fa1..5ce00be 100644
---- b/src/gen_uuid.c
-+++ a/src/gen_uuid.c
+diff --git a/src/gen_uuid.c b/src/gen_uuid.c
+index 76d5371..95c2d82 100644
+--- a/src/gen_uuid.c
++++ b/src/gen_uuid.c
 @@ -96,30 +96,6 @@
  #define THREAD_LOCAL static
  #endif
@@ -110,7 +110,23 @@ index d353fa1..5ce00be 100644
  	if (state_fd == -1)
  		ret = -1;
  
-@@ -280,6 +261,7 @@ static int get_clock(uint32_t *clock_high, uint32_t *clock_low,
+@@ -250,6 +231,7 @@ static int get_clock(uint32_t *clock_high, uint32_t *clock_low,
+ 	}
+ 	if (state_fd >= 0) {
+ 		rewind(state_f);
++#ifdef HAVE_FLOCK
+ 		while (flock(state_fd, LOCK_EX) < 0) {
+ 			if ((errno == EAGAIN) || (errno == EINTR))
+ 				continue;
+@@ -259,6 +241,7 @@ static int get_clock(uint32_t *clock_high, uint32_t *clock_low,
+ 			ret = -1;
+ 			break;
+ 		}
++#endif
+ 	}
+ 	if (state_fd >= 0) {
+ 		unsigned int cl;
+@@ -280,6 +263,7 @@ static int get_clock(uint32_t *clock_high, uint32_t *clock_low,
  		gettimeofday(&last, NULL);
  		last.tv_sec--;
  	}
@@ -118,7 +134,7 @@ index d353fa1..5ce00be 100644
  
  try_again:
  	gettimeofday(&tv, NULL);
-@@ -311,6 +293,7 @@ try_again:
+@@ -311,6 +295,7 @@ try_again:
  		last.tv_usec = last.tv_usec % 1000000;
  	}
  
@@ -126,18 +142,22 @@ index d353fa1..5ce00be 100644
  	if (state_fd >= 0) {
  		rewind(state_f);
  		len = fprintf(state_f,
-@@ -324,6 +307,7 @@ try_again:
+@@ -322,8 +307,11 @@ try_again:
+ 			fflush(state_f);
+ 		}
  		rewind(state_f);
++#ifdef HAVE_FLOCK
  		flock(state_fd, LOCK_UN);
++#endif
  	}
 +#endif
  
  	*clock_high = clock_reg >> 32;
  	*clock_low = clock_reg;
-diff --git b/src/parse.c a/src/parse.c
-index d0c69b0..69718fd 100644
---- b/src/parse.c
-+++ a/src/parse.c
+diff --git a/src/parse.c b/src/parse.c
+index c3e2281..cf609ec 100644
+--- a/src/parse.c
++++ b/src/parse.c
 @@ -40,6 +40,8 @@
  #include "c.h"
  #include "uuidP.h"
@@ -147,10 +167,10 @@ index d0c69b0..69718fd 100644
  int uuid_parse(const char *in, uuid_t uu)
  {
  	size_t len = strlen(in);
-diff --git b/src/randutils.c a/src/randutils.c
-index 39edf4e..f29fca4 100644
---- b/src/randutils.c
-+++ a/src/randutils.c
+diff --git a/src/randutils.c b/src/randutils.c
+index 2ffe9b4..35c072b 100644
+--- a/src/randutils.c
++++ b/src/randutils.c
 @@ -56,6 +56,10 @@ int rand_get_number(int low_n, int high_n)
  	return rand() % (high_n - low_n + 1) + low_n;
  }
@@ -193,10 +213,10 @@ index 39edf4e..f29fca4 100644
  	return n != 0;
  }
  
-diff --git b/src/randutils.h a/src/randutils.h
+diff --git a/src/randutils.h b/src/randutils.h
 index 690bf5e..be10121 100644
---- b/src/randutils.h
-+++ a/src/randutils.h
+--- a/src/randutils.h
++++ b/src/randutils.h
 @@ -1,11 +1,24 @@
  #ifndef UTIL_LINUX_RANDUTILS
  #define UTIL_LINUX_RANDUTILS
