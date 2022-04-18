@@ -1,7 +1,16 @@
  NEWS for uuid
 ---------------
 
-1.0-4
+1.0-5	2022-04-19
+    o	update to upstream util-linux version e928e8ed6
+
+    o	add LinkingTo includes in the source tree. This fixes issues
+	on Windows where the headers were not copied since configure
+	is not run on Windows. The headers can be updated using
+	src/update-inst.sh script in the source tree.
+
+
+1.0-4	2022-03-15
     o	Windows: use dynamic buffer when querying DLLs to
 	avoid "Too many DLLs" error.
 
