@@ -161,6 +161,14 @@
 	_max1 > _max2 ? _max1 : _max2; })
 #endif
 
+#ifndef abs_diff
+# define abs_diff(x, y) __extension__ ({        \
+	__typeof__(x) _a = (x);			\
+	__typeof__(y) _b = (y);			\
+	(void) (&_a == &_b);			\
+	_a > _b ? _a - _b : _b - _a; })
+#endif
+
 #ifndef cmp_numbers
 # define cmp_numbers(x, y) __extension__ ({	\
 	__typeof__(x) _a = (x);			\
@@ -168,6 +176,24 @@
 	(void) (&_a == &_b);			\
 	_a == _b ? 0 : _a > _b ? 1 : -1; })
 #endif
+
+
+#ifndef cmp_timespec
+# define cmp_timespec(a, b, CMP)		\
+	(((a)->tv_sec == (b)->tv_sec)		\
+	? ((a)->tv_nsec CMP (b)->tv_nsec)	\
+	: ((a)->tv_sec CMP (b)->tv_sec))
+#endif
+
+
+#ifndef cmp_stat_mtime
+# ifdef HAVE_STRUCT_STAT_ST_MTIM_TV_NSEC
+#  define cmp_stat_mtime(_a, _b, CMP)	cmp_timespec(&(_a)->st_mtim, &(_b)->st_mtim, CMP)
+# else
+#  define cmp_stat_mtime(_a, _b, CMP)	((_a)->st_mtime CMP (_b)->st_mtime)
+# endif
+#endif
+
 
 #ifndef offsetof
 #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)

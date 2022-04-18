@@ -90,7 +90,8 @@ static inline void xstrncpy(char *dest, const char *src, size_t n)
  * Use this function to copy string to logs with fixed sizes (wtmp/utmp. ...)
  * where string terminator is optional.
  */
-static inline void *str2memcpy(void *dest, const char *src, size_t n)
+static inline void * __attribute__((nonnull (1)))
+str2memcpy(void *dest, const char *src, size_t n)
 {
 	size_t bytes = strlen(src) + 1;
 
@@ -101,13 +102,14 @@ static inline void *str2memcpy(void *dest, const char *src, size_t n)
 	return dest;
 }
 
-static inline char *mem2strcpy(char *dest, const void *src, size_t n, size_t nmax)
+static inline char * __attribute__((nonnull (1)))
+mem2strcpy(char *dest, const void *src, size_t n, size_t nmax)
 {
 	if (n + 1 > nmax)
 		n = nmax - 1;
 
+	memset(dest, '\0', nmax);
 	memcpy(dest, src, n);
-	dest[nmax-1] = '\0';
 	return dest;
 }
 
@@ -389,5 +391,7 @@ extern const char *split(const char **state, size_t *l, const char *separator, i
 
 extern int skip_fline(FILE *fp);
 extern int ul_stralnumcmp(const char *p1, const char *p2);
+
+extern int ul_optstr_next(char **optstr, char **name, size_t *namesz, char **value, size_t *valsz);
 
 #endif
