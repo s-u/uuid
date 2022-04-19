@@ -1,6 +1,16 @@
  NEWS for uuid
 ---------------
 
+1.1-0	2022-04-19
+    o	added UUIDparse() and UUIDvalidate() functions
+
+    o	added an internal representation of UUIDs as
+	class "UUID" which represents a vector of 128-bit
+	elements interpreted as UUIDs. This also allows seamless
+	conversion between textual representation, raw vectors and
+	UUID objects.
+
+
 1.0-5	2022-04-19
     o	update to upstream util-linux version e928e8ed6
 

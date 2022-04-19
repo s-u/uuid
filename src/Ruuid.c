@@ -30,11 +30,19 @@ static int API_uuid_parse(const char *in_start, const char *in_end, uuid_t uu) {
 #include <R_ext/Rdynload.h>
 #include <Rinternals.h>
 
-SEXP UUID_gen(SEXP sTime, SEXP sN); /* R.c */
+SEXP UUID_gen(SEXP sTime, SEXP sN, SEXP sOut); /* R.c */
+SEXP UUID_parse(SEXP sWhat, SEXP sOut);
+SEXP UUID_unparse(SEXP sWhat, SEXP sAsUUID);
+SEXP UUID_is_NA(SEXP sWhat);
+SEXP UUID_cmp(SEXP sE1, SEXP sE2, SEXP sOp);
 
 static const
 R_CallMethodDef callMethods[] = {
-    {"UUID_gen", (DL_FUNC) &UUID_gen, 2},
+    {"UUID_gen",     (DL_FUNC) &UUID_gen,     3},
+    {"UUID_parse",   (DL_FUNC) &UUID_parse,   2},
+    {"UUID_unparse", (DL_FUNC) &UUID_unparse, 2},
+    {"UUID_is_NA",   (DL_FUNC) &UUID_is_NA,   1},
+    {"UUID_cmp",     (DL_FUNC) &UUID_cmp,     3},
     {NULL, NULL, 0}
 };
 
