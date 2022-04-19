@@ -1,5 +1,5 @@
 Package: uuid
-Version: 1.0-5
+Version: 1.1-0
 Title: Tools for Generating and Handling of UUIDs
 Author: Simon Urbanek <Simon.Urbanek@r-project.org> (R package), Theodore Ts'o <tytso@thunk.org> (libuuid)
 Maintainer: Simon Urbanek <Simon.Urbanek@r-project.org>
