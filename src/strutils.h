@@ -42,8 +42,8 @@ extern uint64_t str2unum_or_err(const char *str, int base, const char *errmesg, 
 extern double strtod_or_err(const char *str, const char *errmesg);
 extern long double strtold_or_err(const char *str, const char *errmesg);
 
-extern long strtol_or_err(const char *str, const char *errmesg);
-extern unsigned long strtoul_or_err(const char *str, const char *errmesg);
+#define strtol_or_err(_s, _e)	(long) str2num_or_err(_s, 10, _e, LONG_MIN, LONG_MAX)
+#define strtoul_or_err(_s, _e)	(unsigned long) str2unum_or_err(_s, 10, _e, ULONG_MAX)
 
 extern void strtotimeval_or_err(const char *str, struct timeval *tv,
 		const char *errmesg);
@@ -211,7 +211,8 @@ extern int string_add_to_idarray(const char *list, int ary[],
 				 int (name2id)(const char *, size_t));
 
 extern int string_to_bitarray(const char *list, char *ary,
-			    int (*name2bit)(const char *, size_t));
+			    int (*name2bit)(const char *, size_t),
+			    size_t allow_range);
 
 extern int string_to_bitmask(const char *list,
 			     unsigned long *mask,
@@ -388,6 +389,8 @@ extern char *strfconcat(const char *s, const char *format, ...)
 extern int strappend(char **a, const char *b);
 
 extern const char *split(const char **state, size_t *l, const char *separator, int quoted);
+
+extern char *ul_strchr_escaped(const char *s, int c);
 
 extern int skip_fline(FILE *fp);
 extern int ul_stralnumcmp(const char *p1, const char *p2);
