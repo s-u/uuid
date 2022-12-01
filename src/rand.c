@@ -25,7 +25,7 @@
 #include <windows.h>
 #define HAS_DLSYM 1
 #define RTLD_DEFAULT NULL
-typedef void(*fn_t)();
+typedef void(*fn_t)(void);
 static BOOL (WINAPI *EnumProcessModulesFn)(HANDLE, HMODULE*, DWORD, LPDWORD);
 
 static HMODULE mods_buf[512]; /* we use a static buffer to avoid dynamic allocations */
@@ -87,9 +87,9 @@ static fn_t dlsym(void *whatever, const char *name) {
 
 /* if we can, let's get the symbols dynamically */
 #ifdef HAS_DLSYM
-typedef int(*rand_t)();
+typedef int(*rand_t)(void);
 typedef void(*srand_t)(unsigned);
-typedef long(*random_t)();
+typedef long(*random_t)(void);
 typedef void(*srandom_t)(unsigned);
 #ifdef _WIN32
 typedef errno_t (*rand_s_t)(unsigned int *);
@@ -100,7 +100,7 @@ static srand_t   fn_srand;
 static random_t  fn_random;
 static srandom_t fn_srandom;
 
-static void load_rand() {
+static void load_rand(void) {
     if (!(fn_rand = (rand_t) dlsym(RTLD_DEFAULT, "rand")) ||
 #ifdef _WIN32
 	!(fn_rand_s = (rand_s_t) dlsym(RTLD_DEFAULT, "rand_s")) ||
@@ -135,7 +135,7 @@ void uuid_srand(unsigned seed) {
     fn_srand(seed);
 }
 
-long uuid_random() {
+long uuid_random(void) {
     if (!fn_srand)
 	load_rand();
     return fn_random();
