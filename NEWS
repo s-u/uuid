@@ -1,6 +1,12 @@
  NEWS for uuid
 ---------------
 
+1.1-1	2022-12-02
+    o	clean up strict prototype warnings
+
+    o	update to upstream util-linux version 25b98ae
+
+
 1.1-0	2022-04-19
     o	added UUIDparse() and UUIDvalidate() functions
 
