@@ -1,7 +1,17 @@
 UUIDgenerate <- function(use.time = NA, n = 1L, output = c("string", "raw", "uuid"))
-    .Call(UUID_gen, use.time, n,
+    .Call(UUID_gen, n, switch(match.arg(output), string = 0L, raw = 1L, uuid = 2L),
+          if (isTRUE(use.time)) 1L else if (isTRUE(!use.time)) 4L else NA_integer_, NULL)
+
+UUIDfromName <- function(namespace, name, type = c("sha1", "md5"),
+	     output = c("string", "raw", "uuid")) {
+    ns <- as.UUID(namespace)
+    if (length(ns) != 1 || any(is.na(ns)))
+        stop("namespace must be a single, valid UUID")
+    .Call(UUID_gen, name,
           switch(match.arg(output),
-                 string = 0L, raw = 1L, uuid = 2L))
+                 string = 0L, raw = 1L, uuid = 2L),
+	  switch(match.arg(type), sha1 = 5L, md5 = 3L), ns)
+}
 
 UUIDparse <- function(what, output = c("uuid", "string", "raw", "logical"))
     .Call(UUID_parse, what,

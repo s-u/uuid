@@ -22,9 +22,9 @@ UUID Data Type
   be of length 16 or it must be a matrix with 16 rows. Since matrices in
   R are stored in colum-major format, UUID must be contiguous and thus
   form the \emph{columns} of the raw matrix, which may be slightly
-  counter-intuitive, but is far moreefficient.
+  counter-intuitive, but is far morecefficient.
 
-  \code{as.character} method exist for UUID objects and converts it to a
+  \code{as.character} method exists for UUID objects and converts it to a
   character vector of lower-case UUID string representation.
 
   \code{as.raw} method converts UUIDs to raw vectors or matrices as

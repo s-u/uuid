@@ -1,5 +1,5 @@
 useDynLib(uuid, UUID_gen, UUID_parse, UUID_unparse, UUID_is_NA, UUID_cmp)
-export(UUIDgenerate, UUIDparse, UUIDvalidate, as.UUID, is.UUID)
+export(UUIDgenerate, UUIDfromName, UUIDparse, UUIDvalidate, as.UUID, is.UUID)
 S3method(print, UUID)
 S3method(as.character, UUID)
 S3method(as.UUID, UUID)

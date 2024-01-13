@@ -2,6 +2,7 @@
 \alias{UUIDgenerate}
 \alias{UUIDparse}
 \alias{UUIDvalidate}
+\alias{UUIDfromName}
 \title{
   UUID Functions
 }
@@ -9,13 +10,18 @@
   \code{UUIDgenerate} generates new Universally Unique Identifiers. It
   can be either time-based or random.
 
-  \code{UUIDparse} parses one of more UUIDs it string form and converts
+  \code{UUIDfromName} generates deterministic UUIDs based on namespace
+  UUID and a name (UUID version 3 and 5).
+
+  \code{UUIDparse} parses one of more UUIDs in string form and converts
   them to other internal formats.
 
   \code{UUIDvalidate} checks the valitiy of UUIDs in string form.
 }
 \usage{
 UUIDgenerate(use.time = NA, n = 1L, output = c("string", "raw", "uuid"))
+UUIDfromName(namespace, name, type = c("sha1", "md5"),
+             output = c("string", "raw", "uuid"))
 UUIDparse(what, output = c("uuid", "string", "raw", "logical"))
 UUIDvalidate(what)
 }
@@ -32,11 +38,18 @@ UUIDvalidate(what)
     \code{"uuid"} for an object of the class \code{\link{UUID}} and
     \code{"logical"} which only reports failure/success of the parsing,
     but not the actual values.}
+  \item{namespace}{UUID defining the namespace}
+  \item{name}{character vector of names to use for generating
+    UUIDs. The result will yield as many UUIDs as there are elements in
+    this vector.}
+  \item{type}{string, type of the hash function to use when generating
+    the UUIDs. "sha1" is recommended (version 5 UUID), "md5" is
+    available for compatibility (version 3 UUID).}
   \item{what}{character vector which will be parsed into UUIDs.}    
 }
 \value{
-  \code{UUIDgenerate} and \code{UUIDparse} values depend on the
-  \code{output} argument as follows:
+  \code{UUIDgenerate}, \code{UUIDfromName} and \code{UUIDparse} values
+  depend on the \code{output} argument as follows:
   
   \item{\code{"string"}}{character vector with each element UUID in
     lowercase form, for \code{UUIDparse} strings that cannot be parsed
@@ -76,6 +89,13 @@ as.character(u)
 as.raw(u[1])
 
 UUIDgenerate(output="raw")
+
+## UUID for DNS namespace
+DNS.namespace <- "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+## SHA1 (v5) - default
+UUIDfromName(DNS.namespace, "r-project.org")
+## MD5 (v3)
+UUIDfromName(DNS.namespace, "r-project.org", type="md5")
 
 ## see ?UUID for more examples on UUID objects
 }

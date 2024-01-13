@@ -1,6 +1,11 @@
  NEWS for uuid
 ---------------
 
+1.2-0	2024-01-13
+    o	add UUIDfromName() which allows generation of version 3 and 5
+	UUIDs based on a namespace UUID and a string.
+
+
 1.1-1	2022-12-02
     o	clean up strict prototype warnings
 

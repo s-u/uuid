@@ -18,20 +18,29 @@ static void set_raw_dim(SEXP x, size_t n) {
     Rf_setAttrib(x, R_DimSymbol, sDim); /* setAttrib does PROTECT */
 }
 
-SEXP UUID_gen(SEXP sTime, SEXP sN, SEXP sOut) {
+SEXP UUID_gen(SEXP sN, SEXP sOut, SEXP sType, SEXP sNS) {
     uuid_t u;
     SEXP res;
     char c[40];
-    int use_time = asInteger(sTime);
     int form = asInteger(sOut);
+    int ver  = asInteger(sType); /* use.time=TRUE -> 1, use.time=FALSE -> 4, use.time=NA -> NA */
     ptrdiff_t i, n = -1;
     uuid_t *dst = &u;
-    if (TYPEOF(sN) == INTSXP && LENGTH(sN) > 0)
-	n = INTEGER(sN)[0];
-    if (TYPEOF(sN) == REALSXP && LENGTH(sN) > 0)
-	n = (ptrdiff_t)REAL(sN)[0];
-    if (n < 0)
-	Rf_error("invalid n, must be a positive integer");
+    uuid_t ns;
+    if (ver == 3 || ver == 5) {
+	/* use sN as the name vector and sNS UUID; R code does the necessary coersions */
+	n = (ptrdiff_t) XLENGTH(sN);
+	if (!(TYPEOF(sNS) == CPLXSXP && Rf_inherits(sNS, "UUID")))
+	    Rf_error("namespace must be a valid UUID object");
+	memcpy(&ns, (uuid_t*) COMPLEX(sNS), sizeof(uuid_t));
+    } else {
+	if (TYPEOF(sN) == INTSXP && LENGTH(sN) > 0)
+	    n = INTEGER(sN)[0];
+	if (TYPEOF(sN) == REALSXP && LENGTH(sN) > 0)
+	    n = (ptrdiff_t)REAL(sN)[0];
+	if (n < 0)
+	    Rf_error("invalid n, must be a positive integer");
+    }
     switch(form) {
     case OF_STRING: res = PROTECT(allocVector(STRSXP, n)); break;
     case OF_RAW:    res = PROTECT(allocVector(RAWSXP, n * sizeof(uuid_t))); dst = (uuid_t*) RAW(res); break;
@@ -40,13 +49,25 @@ SEXP UUID_gen(SEXP sTime, SEXP sN, SEXP sOut) {
 	Rf_error("invalid output format specification");
     }
     for (i = 0; i < n; i++) {
-	if (use_time == TRUE)
-	    uuid_generate_time(*dst);
-	else if (use_time == FALSE)
-	    uuid_generate_random(*dst);
-	else
+	switch(ver) {
+	case 1: 
+	    uuid_generate_time(*dst); break;
+	case 4:
+	    uuid_generate_random(*dst); break;
+	case 3:
+	case 5:
+	    {
+		const char *name = CHAR(STRING_ELT(sN, i));
+		if (ver == 3)
+		    uuid_generate_md5(*dst, ns, name, strlen(name));
+		else
+		    uuid_generate_sha1(*dst, ns, name, strlen(name));
+		break;
+	    }
+	default:
 	    uuid_generate(*dst);
-	
+	}
+
 	if (form == OF_STRING) {
 	    uuid_unparse_lower(u, c);
 	    SET_STRING_ELT(res, i, mkChar(c));
