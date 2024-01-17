@@ -1,1 +1,2 @@
 PKG_CPPFLAGS=-include config.h -Iwin32
+PKG_LIBS=-lpthread
