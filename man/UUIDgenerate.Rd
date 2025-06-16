@@ -71,8 +71,19 @@ UUIDvalidate(what)
   Simon Urbanek, based on libuuid by Theodore Ts'o.
 }
 \note{
-  The first argument is not \code{n} for historical reasons, beause the
+  The first argument is not \code{n} for historical reasons, because the
   first version did only generate a single UUID.
+
+  Note that time-based UUIDs are \emph{not} unique by design: two
+  UUIDs generated at exactly the same time will be identical by
+  definition and the underlying \code{libuuid} library can generate
+  duplicate time-based UUIDs if the CPU is fast enough. The
+  \code{UUIDgenerate} function always keeps track of the last
+  generated time-based UUID and will wait and repeat generation in
+  case the next requested UUID is identical, so the results from
+  \code{UUIDgenerate(TRUE, ...)} call will not include duplicates.
+  However, any other means of generating UUID (or calls to the C
+  API from parallel threads) do not offer that guarantee.
 }
 \examples{
 UUIDgenerate()
