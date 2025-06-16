@@ -3,25 +3,25 @@
 /* defined if the system supports dlsym */
 #undef HAS_DLSYM
 
-/* Define to 1 if you have the `dirfd' function. */
+/* Define to 1 if you have the 'dirfd' function. */
 #undef HAVE_DIRFD
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
-/* Define to 1 if you have the `err' function. */
+/* Define to 1 if you have the 'err' function. */
 #undef HAVE_ERR
 
-/* Define to 1 if you have the `errx' function. */
+/* Define to 1 if you have the 'errx' function. */
 #undef HAVE_ERRX
 
-/* Define to 1 if you have the `flock' function. */
+/* Define to 1 if you have the 'flock' function. */
 #undef HAVE_FLOCK
 
-/* Define to 1 if you have the `getexecname' function. */
+/* Define to 1 if you have the 'getexecname' function. */
 #undef HAVE_GETEXECNAME
 
-/* Define to 1 if you have the `getrandom' function. */
+/* Define to 1 if you have the 'getrandom' function. */
 #undef HAVE_GETRANDOM
 
 /* Define to 1 if you have the <grp.h> header file. */
@@ -30,28 +30,28 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define to 1 if you have the `jrand48' function. */
+/* Define to 1 if you have the 'jrand48' function. */
 #undef HAVE_JRAND48
 
 /* Define to 1 if you have the <langinfo.h> header file. */
 #undef HAVE_LANGINFO_H
 
-/* Define to 1 if you have the `lchown' function. */
+/* Define to 1 if you have the 'lchown' function. */
 #undef HAVE_LCHOWN
 
-/* Define to 1 if you have the `llseek' function. */
+/* Define to 1 if you have the 'llseek' function. */
 #undef HAVE_LLSEEK
 
 /* Define to 1 if you have the <locale.h> header file. */
 #undef HAVE_LOCALE_H
 
-/* Define to 1 if you have the `mempcpy' function. */
+/* Define to 1 if you have the 'mempcpy' function. */
 #undef HAVE_MEMPCPY
 
-/* Define to 1 if you have the `mkostemp' function. */
+/* Define to 1 if you have the 'mkostemp' function. */
 #undef HAVE_MKOSTEMP
 
-/* Define to 1 if you have the `nanosleep' function. */
+/* Define to 1 if you have the 'nanosleep' function. */
 #undef HAVE_NANOSLEEP
 
 /* Define to 1 if you have the <netinet/in.h> header file. */
@@ -66,10 +66,10 @@
 /* Define if struct sockaddr contains sa_len */
 #undef HAVE_SA_LEN
 
-/* Define to 1 if you have the `sendfile' function. */
+/* Define to 1 if you have the 'sendfile' function. */
 #undef HAVE_SENDFILE
 
-/* Define to 1 if you have the `srandom' function. */
+/* Define to 1 if you have the 'srandom' function. */
 #undef HAVE_SRANDOM
 
 /* Define to 1 if you have the <stdint.h> header file. */
@@ -87,13 +87,13 @@
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
 
-/* Define to 1 if you have the `strnchr' function. */
+/* Define to 1 if you have the 'strnchr' function. */
 #undef HAVE_STRNCHR
 
-/* Define to 1 if you have the `strndup' function. */
+/* Define to 1 if you have the 'strndup' function. */
 #undef HAVE_STRNDUP
 
-/* Define to 1 if you have the `strnlen' function. */
+/* Define to 1 if you have the 'strnlen' function. */
 #undef HAVE_STRNLEN
 
 /* Define to 1 if you have the <sys/file.h> header file. */
@@ -104,6 +104,9 @@
 
 /* Define to 1 if you have the <sys/sendfile.h> header file. */
 #undef HAVE_SYS_SENDFILE_H
+
+/* Define to 1 if you have the <sys/signalfd.h> header file. */
+#undef HAVE_SYS_SIGNALFD_H
 
 /* Define to 1 if you have the <sys/socket.h> header file. */
 #undef HAVE_SYS_SOCKET_H
@@ -132,13 +135,16 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* Define to 1 if you have the `usleep' function. */
+/* Define to 1 if you have the 'usleep' function. */
 #undef HAVE_USLEEP
 
-/* Define to 1 if you have the `warn' function. */
+/* Define to 1 if you want to use uuid daemon. */
+#undef HAVE_UUIDD
+
+/* Define to 1 if you have the 'warn' function. */
 #undef HAVE_WARN
 
-/* Define to 1 if you have the `warnx' function. */
+/* Define to 1 if you have the 'warnx' function. */
 #undef HAVE_WARNX
 
 /* Define to the address where bug reports for this package should be sent. */
@@ -159,7 +165,10 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
-/* Define to 1 if all of the C90 standard headers exist (not just the ones
+/* Define to 1 if all of the C89 standard headers exist (not just the ones
    required in a freestanding environment). This macro is provided for
    backward compatibility; new code need not use it. */
 #undef STDC_HEADERS
+
+/* Define path to the run state directory. */
+#undef _PATH_RUNSTATEDIR
