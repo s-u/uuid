@@ -1,6 +1,13 @@
  NEWS for uuid
 ---------------
 
+1.2-2
+    o	time-generated UUIDs are not guaranteed to be unique if they are
+	requested within the same time slot, so the time-based UUID generation
+	will now stall and re-generate until the UUID is different from
+	the previously generated one (can happen for very fast CPUs). (#17)
+
+
 1.2-1	2024-07-29
     o	minor DESCRIPTION updates (add ORCID, Authors@R and /issues)
 
