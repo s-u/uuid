@@ -18,6 +18,8 @@ static void set_raw_dim(SEXP x, size_t n) {
     Rf_setAttrib(x, R_DimSymbol, sDim); /* setAttrib does PROTECT */
 }
 
+static uuid_t last_time_uuid;
+
 SEXP UUID_gen(SEXP sN, SEXP sOut, SEXP sType, SEXP sNS) {
     uuid_t u;
     SEXP res;
@@ -50,8 +52,13 @@ SEXP UUID_gen(SEXP sN, SEXP sOut, SEXP sType, SEXP sNS) {
     }
     for (i = 0; i < n; i++) {
 	switch(ver) {
-	case 1: 
-	    uuid_generate_time(*dst); break;
+	case 1:
+	    uuid_generate_time(*dst);
+	    /* check for duplicate UUIDs */
+	    while (!memcmp(*dst, last_time_uuid, sizeof(last_time_uuid)))
+		uuid_generate_time(*dst); /* re-generate in that case */
+	    memcpy(last_time_uuid, *dst, sizeof(last_time_uuid));
+	    break;
 	case 4:
 	    uuid_generate_random(*dst); break;
 	case 3:

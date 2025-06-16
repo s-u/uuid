@@ -1,5 +1,9 @@
 #include "Ruuid.h"
 
+#include <string.h>
+
+static uuid_t last_time_uuid;
+
 static int API_uuid_generate(uuid_t uuid, int type) {
     if (type == GT_DEFAULT) {
 	uuid_generate(uuid);
@@ -7,6 +11,9 @@ static int API_uuid_generate(uuid_t uuid, int type) {
     }
     if (type == GT_TIME) {
 	uuid_generate_time(uuid);
+	while (!memcmp(uuid, last_time_uuid, sizeof(last_time_uuid)))
+	    uuid_generate_time(uuid);
+	memcpy(last_time_uuid, uuid, sizeof(last_time_uuid));
 	return 0;
     }
     if (type == GT_RANDOM) {
