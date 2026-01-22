@@ -57,7 +57,7 @@ int rand_get_number(int low_n, int high_n)
 }
 
 #ifdef _WIN32
-static int getuid() { return 1; }
+static int getuid(void) { return 1; }
 #endif
 
 static void crank_random(void)
