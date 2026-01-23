@@ -1,7 +1,7 @@
  NEWS for uuid
 ---------------
 
-1.2-2	2025-01-23
+1.2-2	2026-01-23
     o	time-generated UUIDs are not guaranteed to be unique if they are
 	requested within the same time slot, so the time-based UUID generation
 	will now stall and re-generate until the UUID is different from
